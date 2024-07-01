@@ -15,7 +15,7 @@ pub trait IContractA<TContractState> {
 #[starknet::contract]
 mod ContractA {
     use cairo_counter::contract_a::IContractA;
-    use core::starknet::storage::StoragePointerReadAccess;
+    // use core::starknet::storage::StoragePointerReadAccess;
     use core::starknet::event::EventEmitter;
     use starknet::{ContractAddress, get_caller_address};
     use super::Errors;
