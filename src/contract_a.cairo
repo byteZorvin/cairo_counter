@@ -21,12 +21,18 @@ mod ContractA {
 
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
+    use openzeppelin::access::ownable::OwnableComponent;
 
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+    component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
 
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+    impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
+
+    #[abi(embed_v0)]
+    impl OwnableMixinIpl = OwnableComponent::OwnableMixinImpl<ContractState>;
 
 
     #[storage]
@@ -34,7 +40,9 @@ mod ContractA {
         x: felt252,
         owner: ContractAddress,
         #[substorage(v0)]
-        upgradeable: UpgradeableComponent::Storage
+        upgradeable: UpgradeableComponent::Storage,
+        #[substorage(v0)]
+        ownable: OwnableComponent::Storage
     }
 
 
@@ -44,7 +52,9 @@ mod ContractA {
         OwnerSet: OwnerSet,
         Incremented: Incremented,
         #[flat]
-        UpgradeableEvent: UpgradeableComponent::Event
+        UpgradeableEvent: UpgradeableComponent::Event,
+        #[flat]
+        OwnableEvent: OwnableComponent::Event
     }
 
 
@@ -99,6 +109,7 @@ mod ContractA {
     #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            self.ownable.assert_only_owner();
             self.upgradeable.upgrade(new_class_hash);
         }
     }
