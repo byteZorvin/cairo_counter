@@ -16,7 +16,8 @@ Write tests in starknet foundry that
 - Use proper interfaces to be used in the contracts and import them to call each other
 
 ### Part 2
-- Make both contracts upgradeable and use OZ ownable component to manage the access of increment
+- Make both contracts upgradeable
+- use OZ upgradeable component in one and low level syscall in other to manage the upgradeablility
 - In contract 2 
 	- add new storage variable called total_handshakes
 	- add a new function handshake() that first calls the 
