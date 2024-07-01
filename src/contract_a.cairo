@@ -15,22 +15,36 @@ pub trait IContractA<TContractState> {
 #[starknet::contract]
 mod ContractA {
     use cairo_counter::contract_a::IContractA;
-    // use core::starknet::storage::StoragePointerReadAccess;
     use core::starknet::event::EventEmitter;
-    use starknet::{ContractAddress, get_caller_address};
+    use starknet::{ContractAddress, get_caller_address, ClassHash};
     use super::Errors;
+
+    use openzeppelin::upgrades::UpgradeableComponent;
+    use openzeppelin::upgrades::interface::IUpgradeable;
+
+
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+
+
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+
 
     #[storage]
     struct Storage {
         x: felt252,
-        owner: ContractAddress
+        owner: ContractAddress,
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage
     }
+
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         OwnerSet: OwnerSet,
-        Incremented: Incremented
+        Incremented: Incremented,
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event
     }
 
 
@@ -78,6 +92,14 @@ mod ContractA {
             let caller = get_caller_address();
             let owner = self.owner.read();
             assert(caller == owner, Errors::NOT_OWNER);
+        }
+    }
+
+
+    #[abi(embed_v0)]
+    impl UpgradeableImpl of IUpgradeable<ContractState> {
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            self.upgradeable.upgrade(new_class_hash);
         }
     }
 }
