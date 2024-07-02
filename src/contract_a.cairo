@@ -78,7 +78,7 @@ mod ContractA {
 
     impl ContractA of super::IContractA<ContractState> {
         fn increment_from_b(ref self: ContractState) {
-            self.assert_only_owner();
+            self.assert_owner();
             self.x.write(self.x.read() + 1);
             self.emit(Incremented { new_value: self.x.read() });
         }
@@ -98,7 +98,7 @@ mod ContractA {
 
     #[generate_trait]
     impl InteralImpl of InternalTrait {
-        fn assert_only_owner(self: @ContractState) {
+        fn assert_owner(self: @ContractState) {
             let caller = get_caller_address();
             let owner = self.owner.read();
             assert(caller == owner, Errors::NOT_OWNER);
